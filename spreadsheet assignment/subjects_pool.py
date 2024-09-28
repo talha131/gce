@@ -50,7 +50,7 @@ subjects_pool = [
     "Teaching of Urdu",
     "Test Development",
     "Theory of Automata",
-    "Urdu Poetry"
+    "Urdu Poetry",
     "Urdu",
     "Urdu Literature"
 ]
