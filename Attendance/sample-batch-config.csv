@@ -1,0 +1,7 @@
+sheet_id,sheet_name,title,start_date,end_date,sort,pdf,pdf_folder_path,process
+1vwrX7aLKrPjqhjktlow1-_jJKhjNVf6qcPWWchS-4m4,BEd 4 Semester 4 - Prof Ali - Assessment,4 Yr Sem 4 - Prof Ali - Assessment - Report,2025-08-01,2025-08-31,percentage,both,Attendance Reports,true
+1vwrX7aLKrPjqhjktlow1-_jJKhjNVf6qcPWWchS-4m4,Sample Data Sheet,Sample Report - Seat Order,2025-08-01,2025-08-31,seat,no,Attendance Reports,false
+1vwrX7aLKrPjqhjktlow1-_jJKhjNVf6qcPWWchS-4m4,Sample Data Sheet,Sample Report - Percentage Order,2025-08-01,2025-08-31,percentage,only,2025 Reports/August,false
+1vwrX7aLKrPjqhjktlow1-_jJKhjNVf6qcPWWchS-4m4,Sample Data Sheet,Sample Report - Both Sorts,2025-08-01,2025-08-31,both,both,Monthly Reports/August 2025,false
+1vwrX7aLKrPjqhjktlow1-_jJKhjNVf6qcPWWchS-4m4,Sample Data Sheet,Sample Report - PDF Only,2025-08-01,2025-08-31,seat,only,PDF Archive/2025,false
+1vwrX7aLKrPjqhjktlow1-_jJKhjNVf6qcPWWchS-4m4,Sample Data Sheet,Sample Report - Sheets Only,2025-08-01,2025-08-31,percentage,no,Not Used,false
