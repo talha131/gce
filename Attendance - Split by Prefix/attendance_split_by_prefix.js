@@ -69,7 +69,13 @@ function processPrefix(
         leave: 0,
         absent: 0,
         dates: {},
+        firstAppearance: date.getTime(),
       };
+    } else {
+      // Update first appearance if current date is earlier
+      if (date.getTime() < pivotedData[seat].firstAppearance) {
+        pivotedData[seat].firstAppearance = date.getTime();
+      }
     }
 
     if (!dailyTotals[date.getTime()]) {
@@ -125,7 +131,9 @@ function processPrefix(
   ];
 
   Object.values(pivotedData).forEach((student) => {
-    var percentage = (student.present + student.leave) / totalDays;
+    var totalActiveDays = student.present + student.absent;
+    var percentage =
+      totalActiveDays === 0 ? 0 : student.present / totalActiveDays;
     var row = [
       student.seat,
       student.name,
@@ -135,7 +143,12 @@ function processPrefix(
       student.absent,
     ];
     sortedDates.forEach((date) => {
-      row.push(student.dates[date] || "");
+      // Skip dates before student's first appearance
+      if (date < student.firstAppearance) {
+        row.push("");
+      } else {
+        row.push(student.dates[date] || "");
+      }
     });
     outputData.push(row);
   });
