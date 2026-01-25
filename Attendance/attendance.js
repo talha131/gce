@@ -146,12 +146,18 @@ function parseData(rawData, dateRange) {
       studentRecords[seat] = {
         name: name,
         firstAppearance: date,
+        lastAppearance: date,
         attendance: {},
       };
     } else {
       // Update first appearance if current date is earlier
       if (date < studentRecords[seat].firstAppearance) {
         studentRecords[seat].firstAppearance = date;
+      }
+      // Update name if current date is later than the last seen
+      if (date > studentRecords[seat].lastAppearance) {
+        studentRecords[seat].name = name;
+        studentRecords[seat].lastAppearance = date;
       }
     }
 

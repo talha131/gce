@@ -70,11 +70,17 @@ function processPrefix(
         absent: 0,
         dates: {},
         firstAppearance: date.getTime(),
+        lastAppearance: date.getTime(),
       };
     } else {
       // Update first appearance if current date is earlier
       if (date.getTime() < pivotedData[seat].firstAppearance) {
         pivotedData[seat].firstAppearance = date.getTime();
+      }
+      // Update name if current date is later than the last seen
+      if (date.getTime() > pivotedData[seat].lastAppearance) {
+        pivotedData[seat].name = name;
+        pivotedData[seat].lastAppearance = date.getTime();
       }
     }
 
