@@ -1,8 +1,0 @@
-student_id,name,raw_total,bonus_applied,stats_weight_factor,final_scaled_grade
-101,Alice Perfect,194.0,False,1.1,30.0
-102,Bob Average,112.1,False,1.1,19.78
-103,Charlie FailQuiz,127.4,False,1.1,22.48
-104,Dave Mastery,165.0,False,1.1,29.12
-105,Eve BonusLine,32.8,False,1.1,5.79
-106,Frank Absente,0.0,False,1.1,0.0
-107,Grace HardWorker,170.10000000000002,False,1.1,30.0

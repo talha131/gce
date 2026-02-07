@@ -19,16 +19,22 @@ class GradingEngine:
         should NOT affect the statistical weighting of other items (usually).
         """
         if self.config.UNWEIGHTED_ACTIVITY_MODE != "Additive":
-            return 0.0
+            return 0.0, {}
             
         # Get all keys from the mapping
         unweighted_keys = self.config.COLUMN_MAPPING["unweighted"].keys()
         
+        details = {}
         total = 0.0
         for key in unweighted_keys:
-            total += row.get(key, 0)
+            raw_val = row.get(key, 0)
+            total += raw_val
             
-        return total
+            # Record details
+            details[f"{key}_raw"] = raw_val
+            details[f"{key}_final"] = raw_val # Unweighted means raw = final usually
+            
+        return total, details
 
     def apply_quizzes(self, row: pd.Series, stats_modifiers: dict) -> float:
         """
@@ -64,13 +70,14 @@ class GradingEngine:
         else:
             term_score = weighted_score
             
-        return term_score
+        return term_score, {"quizzes_raw": score, "quizzes_final": term_score}
 
     def apply_assignments(self, row: pd.Series, stats_modifiers: dict) -> float:
         """
         Rule C: Assignments (Performance Spectrum).
         """
         assign_total = 0.0
+        details = {}
         
         for a_key in self.config.COLUMN_MAPPING["assignments"].keys():
              
@@ -96,7 +103,11 @@ class GradingEngine:
                  
              assign_total += term_score
              
-        return assign_total
+             # Record details
+             details[f"{a_key}_raw"] = score
+             details[f"{a_key}_final"] = term_score
+             
+        return assign_total, details
 
     def apply_internal_exam(self, row: pd.Series, stats_modifiers: dict) -> float:
         """
@@ -104,7 +115,9 @@ class GradingEngine:
         """
         exam_score = row.get("internal_exam", 0)
         weight = stats_modifiers.get("internal_exam", 1.0)
-        return exam_score * weight
+        final_score = exam_score * weight
+        
+        return final_score, {"internal_exam_raw": exam_score, "internal_exam_final": final_score}
 
     def calculate_composite_score(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -113,7 +126,7 @@ class GradingEngine:
         # 1. Calculate Stats Modifiers
         # We need raw total proxy.
         numeric_cols = df.select_dtypes(include=[np.number]).columns
-        cols_to_sum = [c for c in numeric_cols if c not in ["student_id", "temp_raw_total", "name"]]
+        cols_to_sum = [c for c in numeric_cols if c not in ["student_id", "temp_raw_total", "name", "father_name"]]
         
         df['temp_raw_total'] = df[cols_to_sum].sum(axis=1)
         
@@ -127,30 +140,11 @@ class GradingEngine:
              if col in self.config.COLUMN_MAPPING["unweighted"].keys():
                  continue
                  
-             # Lookup Max Score. User Config uses keys: "Quiz_Total" (Header) or "assign_1" (Internal)?
-             # Config.MAX_SCORES currently has mixed: "Quiz_Total", "assign_1".
-             # This is tricky. 
-             # Loader maps: "Quiz_Total" -> "quizzes".
-             # So df has 'quizzes'. 
-             # We need to look up max score for 'quizzes'.
-             # Strategy: Try key 'col', if not found, try mapping back to CSV header?
+             # Lookup Max Score.
+             # Now standardizing on Internal IDs in config.MAX_SCORES.
              
-             # Simple lookup:
-             max_s = 10.0
-             if col == "quizzes": 
-                 # Config has key "Quiz_Total" -> Need to resolve.
-                 # Let's map internal 'quizzes' -> csv header 'Quiz_Total' via config mapping.
-                 header = self.config.COLUMN_MAPPING["quizzes"]
-                 max_s = self.config.MAX_SCORES.get(header, 10.0)
-             elif col == "internal_exam":
-                 header = self.config.COLUMN_MAPPING["internal_exam"]
-                 max_s = self.config.MAX_SCORES.get(header, 10.0)
-             else:
-                 # Assignments/Unweighted use internal keys in config map?
-                 # Config.COLUMN_MAPPING["assignments"] = {"assign_1": "..."}
-                 # Config.MAX_SCORES = {"assign_1": 20}
-                 # So if col is "assign_1", direct lookup works.
-                 max_s = self.config.MAX_SCORES.get(col, 10.0)
+             # Direct lookup:
+             max_s = self.config.MAX_SCORES.get(col, 10.0)
              
              diff = self.stats_engine.calculate_difficulty(df[col], max_s)
              disc = self.stats_engine.calculate_discrimination(df, col, 'temp_raw_total')
@@ -161,21 +155,53 @@ class GradingEngine:
         # 2. Apply Rules
         results = []
         for index, row in df.iterrows():
-            unweighted_score = self.apply_unweighted(row)
-            quiz_score = self.apply_quizzes(row, stats_modifiers)
-            assign_score = self.apply_assignments(row, stats_modifiers)
-            exam_score = self.apply_internal_exam(row, stats_modifiers)
+            unweighted_score, unweighted_details = self.apply_unweighted(row)
+            quiz_score, quiz_details = self.apply_quizzes(row, stats_modifiers)
+            assign_score, assign_details = self.apply_assignments(row, stats_modifiers)
+            exam_score, exam_details = self.apply_internal_exam(row, stats_modifiers)
             
             # Sum up components
             # Note: Unweighted (formerly Attendance) is additive.
             tentative_total = unweighted_score + quiz_score + assign_score + exam_score
             
-            results.append({
+            # Build Result Row
+            result_row = {
                 "student_id": row.get("student_id"),
                 "name": row.get("name"),
-                "raw_total": float(tentative_total),
-                "bonus_applied": False, 
-                "stats_weight_factor": np.mean(list(stats_modifiers.values())) if stats_modifiers else 1.0
-            })
+                "father_name": row.get("father_name"),
+                
+                # Add Details (unpack dictionaries)
+                **unweighted_details,
+                **assign_details,
+                **quiz_details,
+                **exam_details,
+                
+            }
+            
+            # Calculate student-specific stats_weight_factor
+            # This should be the weighted average of stats modifiers for items this student scored on
+            total_raw_score = 0.0
+            weighted_modifier_sum = 0.0
+            
+            # Process all graded items (skip unweighted)
+            for col in stats_modifiers.keys():
+                if col in self.config.COLUMN_MAPPING["unweighted"].keys():
+                    continue
+                raw_score = row.get(col, 0)
+                modifier = stats_modifiers.get(col, 1.0)
+                
+                total_raw_score += raw_score
+                weighted_modifier_sum += raw_score * modifier
+            
+            # Calculate weighted average
+            if total_raw_score > 0:
+                student_weight_factor = weighted_modifier_sum / total_raw_score
+            else:
+                student_weight_factor = 1.0
+            
+            result_row["raw_total"] = float(tentative_total)
+            result_row["stats_weight_factor"] = student_weight_factor
+            
+            results.append(result_row)
             
         return pd.DataFrame(results)

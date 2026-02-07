@@ -27,18 +27,15 @@ class Reporter:
         theoretical_max = 0.0
         
         # 1. Quizzes
-        # Config key: "quizzes" -> Header "Quiz_Total"
-        # MAX_SCORES key: "Quiz_Total"
-        q_header = self.config.COLUMN_MAPPING["quizzes"]
-        theoretical_max += self.config.MAX_SCORES.get(q_header, 0)
+        # Config key: "quizzes" (Internal ID)
+        theoretical_max += self.config.MAX_SCORES.get("quizzes", 0)
         
         # 2. Assignments
         for a_key in self.config.COLUMN_MAPPING["assignments"].keys():
             theoretical_max += self.config.MAX_SCORES.get(a_key, 0)
             
         # 3. Internal Exam
-        e_header = self.config.COLUMN_MAPPING["internal_exam"]
-        theoretical_max += self.config.MAX_SCORES.get(e_header, 0)
+        theoretical_max += self.config.MAX_SCORES.get("internal_exam", 0)
         
         # Note: Unweighted are ignored in denominator (Additive Bonus)
         

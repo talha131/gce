@@ -43,6 +43,32 @@ class DataLoader:
             console.print(f"[bold red]Error loading CSV:[/bold red] {e}")
             raise
 
+        return df_renamed
+
+    def clean_score(self, val):
+        """
+        Parses score values, handling:
+        - Fractions: "1500 / 1560" -> 1500.0
+        - Commas: "1,500.00" -> 1500.0
+        - Standard numbers: 15.5 -> 15.5
+        """
+        if pd.isna(val) or val == "":
+            return 0.0
+            
+        val_str = str(val).strip()
+        
+        # Handle Fraction (Take Numerator)
+        if "/" in val_str:
+            val_str = val_str.split("/")[0].strip()
+            
+        # Remove commas
+        val_str = val_str.replace(",", "")
+        
+        try:
+            return float(val_str)
+        except ValueError:
+            return 0.0
+
     def validate_schema(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Ensures all columns defined in config.COLUMN_MAPPING exist in the dataframe.
@@ -62,6 +88,7 @@ class DataLoader:
         # 1. Base Identifiers
         flat_map["student_id"] = mapping["student_id"]
         flat_map["name"] = mapping["name"]
+        flat_map["father_name"] = mapping["father_name"]
         
         # 2. Unweighted Activities (formerly Attendance)
         # Mapping is a dict: { "internal_id": "CSV Header" }
@@ -95,13 +122,12 @@ class DataLoader:
         rename_map = {v: k for k, v in flat_map.items()}
         df_renamed = df.rename(columns=rename_map)
         
-        # Fill NaNs with 0 for all graded columns (everything except name/id)
-        cols_to_fill = [c for c in df_renamed.columns if c not in ["student_id", "name"]]
-        df_renamed[cols_to_fill] = df_renamed[cols_to_fill].fillna(0)
+        # Fill NaNs with 0 for all graded columns (everything except name/id/father_name)
+        cols_to_fill = [c for c in df_renamed.columns if c not in ["student_id", "name", "father_name"]]
         
-        # Ensure numeric types
+        # Apply Cleaning Logic
         for col in cols_to_fill:
-             df_renamed[col] = pd.to_numeric(df_renamed[col], errors='coerce').fillna(0)
+             df_renamed[col] = df_renamed[col].apply(self.clean_score)
             
         return df_renamed
 
