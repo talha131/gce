@@ -12,7 +12,7 @@ class Reporter:
     def __init__(self, config):
         self.config = config
 
-    def scale_score(self, raw_score: float, max_achieved: float) -> float:
+    def scale_score(self, raw_score: float) -> float:
         """
         Scales the raw score to the target max (FINAL_SCALED_SCORE_MAX).
         """
@@ -55,11 +55,8 @@ class Reporter:
         # Let's stick effectively to absolute scaling for now to be safe, unless max achieved is used.
         # Ideally, we should calculate the theoretical max possible points students could get.
         
-        # Recalculate theoretical max based on config
-        t_max = sum(self.config.MAX_SCORES.values())
-        
         # Apply scaling
-        results_df["final_scaled_grade"] = results_df["raw_total"].apply(lambda x: self.scale_score(x, t_max))
+        results_df["final_scaled_grade"] = results_df["raw_total"].apply(lambda x: self.scale_score(x))
         results_df["final_scaled_grade"] = results_df["final_scaled_grade"].round(2)
         
         # Save

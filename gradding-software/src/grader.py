@@ -183,14 +183,17 @@ class GradingEngine:
             }
             
             # Calculate student-specific stats_weight_factor
-            # This should be the weighted average of stats modifiers for items this student scored on
+            # This represents the raw-score-weighted average of IRT statistical modifiers.
+            # It isolates the STATISTICAL adjustment component (difficulty + discrimination)
+            # from the RULE-BASED multipliers (mastery/lagging/penalty).
+            # Formula: sum(raw_score * stat_modifier) / sum(raw_score)
+            # Higher raw scores contribute more to the average, which makes sense since
+            # items you scored higher on have more influence on your final grade.
             total_raw_score = 0.0
             weighted_modifier_sum = 0.0
             
-            # Process all graded items (skip unweighted)
+            # Process all graded items (unweighted already excluded from stats_modifiers)
             for col in stats_modifiers.keys():
-                if col in self.config.COLUMN_MAPPING["unweighted"].keys():
-                    continue
                 raw_score = row.get(col, 0)
                 modifier = stats_modifiers.get(col, 1.0)
                 
