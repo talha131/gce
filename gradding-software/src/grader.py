@@ -126,7 +126,11 @@ class GradingEngine:
         # 1. Calculate Stats Modifiers
         # We need raw total proxy.
         numeric_cols = df.select_dtypes(include=[np.number]).columns
-        cols_to_sum = [c for c in numeric_cols if c not in ["student_id", "temp_raw_total", "name", "father_name"]]
+        cols_to_sum = [
+            c for c in numeric_cols 
+            if c not in ["student_id", "temp_raw_total", "name", "father_name"]
+            and c not in self.config.COLUMN_MAPPING["unweighted"].keys()  # Exclude unweighted from IRT
+        ]
         
         df['temp_raw_total'] = df[cols_to_sum].sum(axis=1)
         
