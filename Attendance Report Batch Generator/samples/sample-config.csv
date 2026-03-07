@@ -1,0 +1,6 @@
+sheet_id,sheet_name,title,start_date,end_date,sort,pdf,pdf_folder_path,pdf_alt_name,process
+1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890ABCD,Prof A - BEd 4 Semester 5 - Subject X,Prof A - BEd 4 Semester 5 - Subject X - Attendance Report,2026-01-01,2026-03-31,both,both,2026 - 1 - GCE Attendance/2026-03-31 Reports,BEd 4 Semester 5 - Prof A - Subject X - Attendance Report,TRUE
+1BcDeFgHiJkLmNoPqRsTuVwXyZ0987654321EFGH,Prof B - BEd 2.5 Semester 3 - Subject Y,Prof B - BEd 2.5 Semester 3 - Subject Y - Attendance Report,2026-01-01,2026-03-31,seat,both,2026 - 1 - GCE Attendance/2026-03-31 Reports,,TRUE
+1CdEfGhIjKlMnOpQrStUvWxYz1122334455IJKL,Prof C - BS Education Semester 1 - Subject Z,Prof C - BS Education Semester 1 - Subject Z - Attendance Report,2026-01-01,2026-03-31,percentage,only,2026 - 1 - GCE Attendance/2026-03-31 Reports,BS Edu Semester 1 - Prof C - Subject Z - Attendance Report,TRUE
+1DeFgHiJkLmNoPqRsTuVwXyZaB9988776655MNOP,Prof D - BEd 2.5Eve Semester 1 - Subject W,Prof D - BEd 2.5Eve Semester 1 - Subject W - Attendance Report,2026-01-01,2026-03-31,seat,no,2026 - 1 - GCE Attendance/2026-03-31 Reports,,TRUE
+1EfGhIjKlMnOpQrStUvWxYzAbCd5544332211QRST,Prof E - BEd 4 Semester 7 - Subject V,Prof E - BEd 4 Semester 7 - Subject V - Attendance Report,2026-01-01,2026-03-31,both,both,2026 - 1 - GCE Attendance/2026-03-31 Reports,,FALSE
