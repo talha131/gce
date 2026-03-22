@@ -144,7 +144,7 @@ function sendAssignmentEmails() {
     `📝 Body preview (first 200 chars): ${rawBody.substring(0, 200)}`,
   );
 
-  const attachments = msg.getAttachments(); // Gets attachments if any
+  const { attachments, inlineImages } = extractDraftParts(msg); // Separates regular attachments from inline images
 
   // ============================================================================
   // GET STUDENT DATA
@@ -308,6 +308,7 @@ function sendAssignmentEmails() {
         const emailOptions = {
           htmlBody: personalizedBody,
           attachments: attachments,
+          inlineImages: inlineImages,
         };
 
         // Add sender name if specified in config
@@ -414,6 +415,65 @@ function convertEmojisToEntities(html) {
   }
 
   return converted;
+}
+
+/**
+ * Extracts regular attachments and inline images separately from a Gmail draft message.
+ *
+ * The problem this solves: msg.getAttachments() returns everything (regular files AND
+ * inline images) as one flat list. If you pass all of them as `attachments` in
+ * GmailApp.sendEmail(), inline images lose their cid: binding in the HTML body and
+ * render as broken placeholders. They also appear as unwanted file attachments.
+ *
+ * The fix: split them, then pass inline images via the `inlineImages` option instead,
+ * which maps each content ID to its blob so the HTML <img src="cid:..."> references
+ * resolve correctly in the recipient's email client.
+ *
+ * How cid: mapping works:
+ *   - The draft HTML body contains <img src="cid:ii_abc123"> references.
+ *   - The raw MIME source has a Content-ID: <ii_abc123> header on each inline part.
+ *   - We extract those IDs from the raw MIME and map them to the blobs in order.
+ *   - GmailApp.sendEmail() then wires them back into the HTML correctly.
+ */
+function extractDraftParts(msg) {
+  const regularAttachments = msg.getAttachments({
+    includeInlineImages: false,
+    includeAttachments: true,
+  });
+
+  const inlineImageBlobs = msg.getAttachments({
+    includeInlineImages: true,
+    includeAttachments: false,
+  });
+
+  const inlineImages = {};
+
+  if (inlineImageBlobs.length > 0) {
+    // Extract Content-IDs from the raw MIME source.
+    // Standard format is:  Content-ID: <some_id>
+    // We strip the angle brackets to get the bare ID, which matches the cid: value in HTML.
+    const rawMime = msg.getRawContent();
+    const contentIds = [];
+    const cidRegex = /Content-Id:\s*<([^>]+)>/gi;
+    let match;
+    while ((match = cidRegex.exec(rawMime)) !== null) {
+      contentIds.push(match[1]);
+    }
+
+    // Map each inline blob to its content ID by position.
+    // The order returned by getAttachments() matches the order of MIME parts.
+    inlineImageBlobs.forEach((blob, index) => {
+      if (index < contentIds.length) {
+        inlineImages[contentIds[index]] = blob;
+      } else {
+        // Fallback: if Content-ID extraction misses one, use the blob name.
+        // This is a safety net and should rarely be needed.
+        inlineImages[blob.getName()] = blob;
+      }
+    });
+  }
+
+  return { attachments: regularAttachments, inlineImages };
 }
 
 /**
