@@ -178,7 +178,7 @@ Emails are always sent from the **Google account that is running the script** �
 - **Partial runs**: If the script is interrupted mid-run (e.g., Apps Script timeout), students who were already sent to will have `true` in their cells and won't be double-emailed. Students not yet reached will be picked up on the next run.
 - **Gmail daily send limits**: Google accounts are limited to approximately 100 emails/day (personal) or up to 1,500/day (Google Workspace). Exceeding this quota causes `GmailApp.sendEmail()` to throw, which is caught per-student and logged.
 - **Column letters beyond Z**: The `columnLetterToIndex()` helper supports multi-letter columns (e.g., `AA`, `AB`). This is not a limitation.
-- **Empty rows**: Rows with an empty email address are automatically skipped — no error is thrown.
+- **Empty email address**: If a row has a student name and seat number but no email address, the row is silently skipped — no email is sent, no error is thrown, and the assignment cell is never marked `true`. This is intentional behavior. The student will be skipped on every run until an email is added. There is no warning in the completion summary; the success count will simply be lower.
 
 ---
 

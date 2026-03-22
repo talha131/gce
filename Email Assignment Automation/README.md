@@ -38,7 +38,7 @@ Create a sheet named **"Config"**:
 
 - **SHEET_NAME**: Name of the sheet containing student data
 - **ASSIGNMENT_COLUMN**: Which assignment column to process ("D", "E", "F", etc.) — one column per run
-- **SEND_EMAILS**: `true` to send emails, `false` for test mode (no emails sent, sheet not updated)
+- **SEND_EMAILS**: Controls simulation vs. live mode. `false` = no emails are sent and the sheet is not updated — the script only logs which students *would* be emailed. `true` = emails are actually sent. **Note**: `false` does not send a test email to your inbox — it sends nothing at all. To verify formatting in a real inbox, set this to `true`, add a row with your test email address, mark all other student rows as `true` for that assignment column, and run the script.
 - **SENDER_NAME**: (Optional) Name to display as sender in recipient inbox
 
 ### Students Sheet
@@ -127,6 +127,8 @@ For next assignment, change `ASSIGNMENT_COLUMN` to next column and repeat.
 **Emojis display incorrectly**: Fixed automatically — use emojis normally in draft, don't type HTML codes
 
 **Script quota exceeded**: Gmail limits ~100-500 emails/day depending on account type
+
+**Student skipped silently**: If a row has a name and seat number but no email address, the script skips that row without any warning. The assignment cell will not be marked `true`, and the student will be skipped on every future run as well. This is the intended behavior — simply add the email address to the row when it becomes available.
 
 ---
 
